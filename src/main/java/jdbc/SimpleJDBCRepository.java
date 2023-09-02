@@ -68,7 +68,7 @@ public class SimpleJDBCRepository {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            return -1L;
+            return 1L;
         }
     }
 
