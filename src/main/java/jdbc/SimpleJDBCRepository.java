@@ -10,10 +10,19 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
-@NoArgsConstructor
+
 public class SimpleJDBCRepository {
     private final CustomDataSource dataSource = CustomDataSource.getInstance();
-    private Connection connection = null;
+    private Connection connection;
+
+    public SimpleJDBCRepository() {
+        try {
+            connection = dataSource.getConnection();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private PreparedStatement ps = null;
     private Statement st = null;
 
@@ -39,7 +48,7 @@ public class SimpleJDBCRepository {
 
     public Long createUser(User user) {
         try (var connection = dataSource.getConnection();
-             var ps = connection.prepareStatement(createUserSQL, Statement.RETURN_GENERATED_KEYS);
+             var ps = connection.prepareStatement(createUserSQL);
         ){
             ps.setString(1, user.getFirstName());
             ps.setString(2, user.getLastName());
@@ -108,9 +117,8 @@ public class SimpleJDBCRepository {
 
     public List<User> findAllUser() {
         List<User> userList = new ArrayList<>();
-        try (var conn = dataSource.getConnection()) {
-            st = connection.createStatement();
-            ResultSet rs = st.executeQuery(findAllUserSQL);
+        try( Statement st = connection.createStatement();
+        ResultSet rs = st.executeQuery(findAllUserSQL)) {
 
             while (rs.next()) {
                 userList.add(new User(
